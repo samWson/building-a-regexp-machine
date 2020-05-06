@@ -45,6 +45,33 @@ epsilonNfa test: ''. ""true""
 epsilonNfa test: 'a'. ""false""
 ```
 
+#### Concatenation
+
+State machines can be concatenated together into new state machines.
+To create a state machine that accepts `ab`:
+
+```smalltalk
+firstNfa := SWNfa singleCharacter: $a.
+secondNfa := SWNfa singleCharacter: $b.
+abNfa := SWNfa concat: firstNfa with: secondNfa.
+abNfa test: 'ab'. ""true""
+abNfa test: 'ac'. ""false""
+```
+
+An arbitrary number of state machines can be concatenated together in
+order. Ordering is the same as array index ordering. To create a state 
+machine that accepts `abc`:
+
+```smalltalk
+firstNfa := SWNfa singleCharacter: $a.
+secondNfa := SWNfa singleCharacter: $b.
+thirdNfa := SWNfa singleCharacter: $c.
+
+abcNfa := SWNfa concat: { firstNfa. secondNfa. thirdNfa. }.
+abcNfa test: 'abc'. ""true""
+abcNfa test: 'aba'. ""false""
+```
+
 ## Instance Variables
 
 - inState: SWState, my starting state.
@@ -67,8 +94,37 @@ Class {
 	#category : #SWRegularExpression
 }
 
-{ #category : #'instance creation' }
+{ #category : #factory }
+SWNfa class >> concat: aSequencableCollection [
+
+	| concatenatedNfa |
+	concatenatedNfa := aSequencableCollection first.
+	
+	aSequencableCollection allButFirst do: [ :nfa | 
+		concatenatedNfa := self concat: concatenatedNfa with: nfa
+		].
+	
+	^ concatenatedNfa
+]
+
+{ #category : #factory }
+SWNfa class >> concat: firstSWNfa with: secondSWNfa [
+
+	firstSWNfa outState accepting: false.
+	secondSWNfa outState accepting: true.
+	
+	firstSWNfa outState 
+		addTransitionForSymbol: self epsilon 
+		state: secondSWNfa inState.
+		
+	^ self 
+		newInState: firstSWNfa inState 
+		outState: secondSWNfa outState
+]
+
+{ #category : #factory }
 SWNfa class >> emptyString [
+	"More correctly call the epsilon NFA. Allows transitions between state without consuming characters."
 
 	^ self singleCharacter: self epsilon
 ]
@@ -93,7 +149,7 @@ SWNfa class >> newInState: aSWState1 outState: aSWState2 [
 		outState: aSWState2
 ]
 
-{ #category : #'instance creation' }
+{ #category : #factory }
 SWNfa class >> singleCharacter: aCharacter [
 	"Return a state machine that accepts a single character."
 	
@@ -107,9 +163,21 @@ SWNfa class >> singleCharacter: aCharacter [
 ]
 
 { #category : #accessing }
+SWNfa >> inState [
+
+	^ inState
+]
+
+{ #category : #accessing }
 SWNfa >> inState: aSWState [
 
 	inState := aSWState
+]
+
+{ #category : #accessing }
+SWNfa >> outState [
+
+	^ outState
 ]
 
 { #category : #accessing }
