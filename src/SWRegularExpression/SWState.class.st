@@ -57,6 +57,11 @@ SWState >> initialize [
 	transitions := Dictionary new
 ]
 
+{ #category : #'as yet unclassified' }
+SWState >> test: aString [ 
+	self shouldBeImplemented.
+]
+
 { #category : #accesing }
 SWState >> transitionsForSymbol: aCharacter [
 	
