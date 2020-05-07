@@ -72,6 +72,37 @@ abcNfa test: 'abc'. ""true""
 abcNfa test: 'aba'. ""false""
 ```
 
+#### Union
+
+State machines can be combined into an **OR** machines that accept one
+of two possible characters. To make a machine that accepts `a` or `b`:
+
+```smalltalk
+firstNfa := SWNfa singleCharacter: $a.
+secondNfa := SWNfa singleCharacter: $b.
+
+aOrBNfa := SWNfa or: firstNfa with: secondNfa.
+aOrBNfa test: 'a'. ""true""
+aOrBNfa test: 'b'. ""true""
+aOrBNfa test: 'c'. ""false""
+```
+
+An arbitrary number of machines can be combined into a single **OR**
+machine by providing them in an `Array`. To make a machine that accepts
+`a` or `b` or `c`:
+
+```smalltalk
+firstNfa := SWNfa singleCharacter: $a.
+secondNfa := SWNfa singleCharacter: $b.
+thirdNfa := SWNfa singleCharacter: $c.
+
+aOrBNfa := SWNfa or: { firstNfa. secondNfa. thirdNfa. }.
+aOrBNfa test: 'a'. ""true""
+aOrBNfa test: 'b'. ""true""
+aOrBNfa test: 'c'. ""true""
+aOrBNfa test: 'd'. ""false""
+```
+
 ## Instance Variables
 
 - inState: SWState, my starting state.
@@ -99,8 +130,8 @@ SWNfa class >> concat: aSequencableCollection [
 
 	| concatenatedNfa |
 	concatenatedNfa := aSequencableCollection first.
-	
-	aSequencableCollection allButFirst do: [ :nfa | 
+
+	aSequencableCollection allButFirstDo: [ :nfa | 
 		concatenatedNfa := self concat: concatenatedNfa with: nfa
 		].
 	
@@ -124,7 +155,8 @@ SWNfa class >> concat: firstSWNfa with: secondSWNfa [
 
 { #category : #factory }
 SWNfa class >> emptyString [
-	"More correctly call the epsilon NFA. Allows transitions between state without consuming characters."
+	
+	self flag: #todo. "More correctly called the epsilon NFA. Allows transitions between state without consuming characters. Consider renaming."
 
 	^ self singleCharacter: self epsilon
 ]
@@ -147,6 +179,41 @@ SWNfa class >> newInState: aSWState1 outState: aSWState2 [
 	^ self new
 		inState: aSWState1;
 		outState: aSWState2
+]
+
+{ #category : #factory }
+SWNfa class >> or: aSequencableCollection [
+
+	| orNfa |
+	orNfa := aSequencableCollection first.
+	
+	aSequencableCollection allButFirstDo: [ :nfa |
+		orNfa := self or: orNfa with: nfa
+		 ].
+	
+	^ orNfa
+]
+
+{ #category : #factory }
+SWNfa class >> or: aSWNfa with: aSWNfa2 [
+
+	| startState endState |
+	startState := (SWState newAccepting: false)
+		addTransitionForSymbol: self epsilon state: aSWNfa inState;
+		addTransitionForSymbol: self epsilon state: aSWNfa2 inState;
+		yourself.
+	
+	endState := SWState newAccepting: true.
+	
+	aSWNfa outState 
+		accepting: false;
+		addTransitionForSymbol: self epsilon state: endState.
+		
+	aSWNfa2 outState 
+		accepting: false;
+		addTransitionForSymbol: self epsilon state: endState.
+	
+	^ self newInState: startState outState: endState
 ]
 
 { #category : #factory }
