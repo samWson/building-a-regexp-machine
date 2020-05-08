@@ -47,7 +47,7 @@ epsilonNfa test: 'a'. ""false""
 
 #### Concatenation
 
-State machines can be concatenated together into new state machines.
+State machines can be concatenated together into compound state machines.
 To create a state machine that accepts `ab`:
 
 ```smalltalk
@@ -74,8 +74,8 @@ abcNfa test: 'aba'. ""false""
 
 #### Union
 
-State machines can be combined into an **OR** machines that accept one
-of two possible characters. To make a machine that accepts `a` or `b`:
+State machines can be combined into compound **OR** machines that accept 
+one of two possible characters. To make a machine that accepts `a` or `b`:
 
 ```smalltalk
 firstNfa := SWNfa singleCharacter: $a.
@@ -87,7 +87,7 @@ aOrBNfa test: 'b'. ""true""
 aOrBNfa test: 'c'. ""false""
 ```
 
-An arbitrary number of machines can be combined into a single **OR**
+An arbitrary number of machines can be combined into a compound **OR**
 machine by providing them in an `Array`. To make a machine that accepts
 `a` or `b` or `c`:
 
@@ -101,6 +101,21 @@ aOrBNfa test: 'a'. ""true""
 aOrBNfa test: 'b'. ""true""
 aOrBNfa test: 'c'. ""true""
 aOrBNfa test: 'd'. ""false""
+```
+
+#### Repetition
+
+State machines can be repeated zero or more times with the **Klenne-closure** operation. To create a machine that accepts zero or more instances of `a`:
+
+```smalltalk
+singleA := SWNfa singleCharacter: $a.
+
+repeatedA := SWNfa repeat: singleA.
+
+repeatedA test: ''. ""true""
+repeatedA test: 'a'. ""true""
+repeatedA test: 'aa'. ""true""
+repeatedA test: 'b'. ""false""
 ```
 
 ## Instance Variables
@@ -144,10 +159,8 @@ SWNfa class >> concat: firstSWNfa with: secondSWNfa [
 	firstSWNfa outState accepting: false.
 	secondSWNfa outState accepting: true.
 	
-	firstSWNfa outState 
-		addTransitionForSymbol: self epsilon 
-		state: secondSWNfa inState.
-		
+	firstSWNfa outState addEpsilonTransitionTo: secondSWNfa inState.
+
 	^ self 
 		newInState: firstSWNfa inState 
 		outState: secondSWNfa outState
@@ -199,19 +212,40 @@ SWNfa class >> or: aSWNfa with: aSWNfa2 [
 
 	| startState endState |
 	startState := (SWState newAccepting: false)
-		addTransitionForSymbol: self epsilon state: aSWNfa inState;
-		addTransitionForSymbol: self epsilon state: aSWNfa2 inState;
+		addEpsilonTransitionTo: aSWNfa inState;
+		addEpsilonTransitionTo: aSWNfa2 inState;
 		yourself.
 	
 	endState := SWState newAccepting: true.
 	
 	aSWNfa outState 
 		accepting: false;
-		addTransitionForSymbol: self epsilon state: endState.
+		addEpsilonTransitionTo: endState.
 		
 	aSWNfa2 outState 
 		accepting: false;
-		addTransitionForSymbol: self epsilon state: endState.
+		addEpsilonTransitionTo: endState.
+	
+	^ self newInState: startState outState: endState
+]
+
+{ #category : #factory }
+SWNfa class >> repeat: aSWNfa [
+	"Repeat an NFA zero or more times."
+	
+	| startState endState |
+	startState := SWState newAccepting: false.
+	endState := SWState newAccepting: true.
+	
+	startState 
+		addEpsilonTransitionTo: endState;
+		addEpsilonTransitionTo: aSWNfa inState.
+
+	aSWNfa outState
+		accepting: false;
+		addEpsilonTransitionTo: endState.
+
+	endState addEpsilonTransitionTo: aSWNfa inState.
 	
 	^ self newInState: startState outState: endState
 ]

@@ -43,6 +43,12 @@ SWState >> accepting: aBoolean [
 ]
 
 { #category : #accesing }
+SWState >> addEpsilonTransitionTo: aSWState [
+
+	self addTransitionForSymbol: SWNfa epsilon state: aSWState
+]
+
+{ #category : #accesing }
 SWState >> addTransitionForSymbol: aCharacter state: aState [
 
 	transitions 
