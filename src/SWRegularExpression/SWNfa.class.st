@@ -255,23 +255,12 @@ SWNfa class >> or: aSWNfa with: aSWNfa2 [
 
 { #category : #factory }
 SWNfa class >> repeat: aSWNfa [
-	"Repeat an NFA zero or more times."
+	"The Kleene-closure or `*` operator. Repeat an NFA zero or more times."
 	
-	| startState endState |
-	startState := SWState newAccepting: false.
-	endState := SWState newAccepting: true.
+	aSWNfa inState addEpsilonTransitionTo: aSWNfa outState.
+	aSWNfa outState addEpsilonTransitionTo: aSWNfa inState.
 	
-	startState 
-		addEpsilonTransitionTo: endState;
-		addEpsilonTransitionTo: aSWNfa inState.
-
-	aSWNfa outState
-		accepting: false;
-		addEpsilonTransitionTo: endState.
-
-	endState addEpsilonTransitionTo: aSWNfa inState.
-	
-	^ self newInState: startState outState: endState
+	^ aSWNfa
 ]
 
 { #category : #accessing }
