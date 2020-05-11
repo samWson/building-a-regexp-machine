@@ -31,7 +31,7 @@ I have class factory methods that return specific types of state machines.
 For a state machine that will only accept the character `a`:
 
 ```smalltalk
-singleCharNfa := SWNfa singleCharacter: $a.
+singleCharNfa := SWNfa characters: 'a'.
 singleCharNfa test: 'a'. ""true""
 singleCharNfa test: 'b'. ""false""
 ```
@@ -45,14 +45,26 @@ epsilonNfa test: ''. ""true""
 epsilonNfa test: 'a'. ""false""
 ```
 
+An NFA that supports multiple character transitions to the end state can be made
+by providing a string of allowed characters. An entire character class can
+be covered. For the character class of all numbers `[0-9]`:
+
+```smalltalk
+allNumbers := SWNfa characters: '0123456789'.
+
+allNumbers test: '5'. ""true""
+allNumbers test: '9'. ""true""
+allNumbers test: 'a'. ""false""
+```
+
 #### Concatenation
 
 State machines can be concatenated together into compound state machines.
 To create a state machine that accepts `ab`:
 
 ```smalltalk
-firstNfa := SWNfa singleCharacter: $a.
-secondNfa := SWNfa singleCharacter: $b.
+firstNfa := SWNfa characters: 'a'.
+secondNfa := SWNfa characters: 'b'.
 abNfa := SWNfa concat: firstNfa with: secondNfa.
 abNfa test: 'ab'. ""true""
 abNfa test: 'ac'. ""false""
@@ -63,9 +75,9 @@ order. Ordering is the same as array index ordering. To create a state
 machine that accepts `abc`:
 
 ```smalltalk
-firstNfa := SWNfa singleCharacter: $a.
-secondNfa := SWNfa singleCharacter: $b.
-thirdNfa := SWNfa singleCharacter: $c.
+firstNfa := SWNfa characters: 'a'.
+secondNfa := SWNfa characters: 'b'.
+thirdNfa := SWNfa characters: 'c'.
 
 abcNfa := SWNfa concat: { firstNfa. secondNfa. thirdNfa. }.
 abcNfa test: 'abc'. ""true""
@@ -78,8 +90,8 @@ State machines can be combined into compound **OR** machines that accept
 one of two possible characters. To make a machine that accepts `a` or `b`:
 
 ```smalltalk
-firstNfa := SWNfa singleCharacter: $a.
-secondNfa := SWNfa singleCharacter: $b.
+firstNfa := SWNfa characters: 'a'.
+secondNfa := SWNfa characters: 'b'.
 
 aOrBNfa := SWNfa or: firstNfa with: secondNfa.
 aOrBNfa test: 'a'. ""true""
@@ -92,9 +104,9 @@ machine by providing them in an `Array`. To make a machine that accepts
 `a` or `b` or `c`:
 
 ```smalltalk
-firstNfa := SWNfa singleCharacter: $a.
-secondNfa := SWNfa singleCharacter: $b.
-thirdNfa := SWNfa singleCharacter: $c.
+firstNfa := SWNfa characters: 'a'.
+secondNfa := SWNfa characters: 'b'.
+thirdNfa := SWNfa characters: 'c'.
 
 aOrBNfa := SWNfa or: { firstNfa. secondNfa. thirdNfa. }.
 aOrBNfa test: 'a'. ""true""
@@ -108,7 +120,7 @@ aOrBNfa test: 'd'. ""false""
 State machines can be repeated zero or more times with the **Klenne-closure** operation. To create a machine that accepts zero or more instances of `a`:
 
 ```smalltalk
-singleA := SWNfa singleCharacter: $a.
+singleA := SWNfa characters: 'a'.
 
 repeatedA := SWNfa repeat: singleA.
 
@@ -141,6 +153,18 @@ Class {
 }
 
 { #category : #factory }
+SWNfa class >> characters: aString [
+	
+	| inState outState |
+	inState := SWState newAccepting: false.
+	outState := SWState newAccepting: true.
+	
+	aString do: [ :char | inState addTransitionForSymbol: char state: outState ].
+	
+	^ self newInState: inState outState: outState
+]
+
+{ #category : #factory }
 SWNfa class >> concat: aSequencableCollection [
 
 	| concatenatedNfa |
@@ -171,7 +195,7 @@ SWNfa class >> emptyString [
 	
 	self flag: #todo. "More correctly called the epsilon NFA. Allows transitions between state without consuming characters. Consider renaming."
 
-	^ self singleCharacter: self epsilon
+	^ self characters: self epsilon asString
 ]
 
 { #category : #constants }
@@ -248,19 +272,6 @@ SWNfa class >> repeat: aSWNfa [
 	endState addEpsilonTransitionTo: aSWNfa inState.
 	
 	^ self newInState: startState outState: endState
-]
-
-{ #category : #factory }
-SWNfa class >> singleCharacter: aCharacter [
-	"Return a state machine that accepts a single character."
-	
-	| inState outState |
-	inState := SWState newAccepting: false.
-	outState := SWState newAccepting: true.
-	
-	inState addTransitionForSymbol: aCharacter state: outState.
-	
-	^ self newInState: inState outState: outState
 ]
 
 { #category : #accessing }
