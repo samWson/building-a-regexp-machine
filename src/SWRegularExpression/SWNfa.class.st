@@ -57,6 +57,17 @@ allNumbers test: '9'. ""true""
 allNumbers test: 'a'. ""false""
 ```
 
+For an NFA that allows one or more character transitions e.g. `a+`:
+
+```smalltalk
+a := SWNfa characters: 'a'.
+aPlus := SNFa oneOrMore: a.
+
+aPlus test: 'a'. ""true""
+aPlus test: 'aa'. ""true""
+aPlus test: ''. ""false""
+``` 
+
 #### Concatenation
 
 State machines can be concatenated together into compound state machines.
@@ -216,6 +227,15 @@ SWNfa class >> newInState: aSWState1 outState: aSWState2 [
 	^ self new
 		inState: aSWState1;
 		outState: aSWState2
+]
+
+{ #category : #factory }
+SWNfa class >> oneOrMore: aSWNfa [
+	"The plus `+` operator. Repeat an NFA one or more times."
+	
+	aSWNfa outState addEpsilonTransitionTo: aSWNfa inState.
+	
+	^ aSWNfa 
 ]
 
 { #category : #factory }
