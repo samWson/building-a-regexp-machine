@@ -61,12 +61,23 @@ For an NFA that allows one or more character transitions e.g. `a+`:
 
 ```smalltalk
 a := SWNfa characters: 'a'.
-aPlus := SNFa oneOrMore: a.
+aPlus := SWNFa oneOrMore: a.
 
 aPlus test: 'a'. ""true""
 aPlus test: 'aa'. ""true""
 aPlus test: ''. ""false""
 ``` 
+
+For an NFA that allows one or zero character transitions i.e. is optional e.g. `a?`:
+
+```smalltalk
+a := SWNfa characters: 'a'.
+aOptional := SWNfa oneOrZero: a.
+
+aOptional test: ''. ""true""
+aOptional test: 'a'. ""true""
+aOptional test: 'aa'. ""false""
+```
 
 #### Concatenation
 
@@ -236,6 +247,15 @@ SWNfa class >> oneOrMore: aSWNfa [
 	aSWNfa outState addEpsilonTransitionTo: aSWNfa inState.
 	
 	^ aSWNfa 
+]
+
+{ #category : #factory }
+SWNfa class >> oneOrZero: aSWNfa [
+	"The question mark `?` operator. Allow an NFA transition one or zero times i.e. optional."	
+
+	aSWNfa inState addEpsilonTransitionTo: aSWNfa outState.
+	
+	^ aSWNfa
 ]
 
 { #category : #factory }
