@@ -45,6 +45,7 @@ epsilonNfa test: ''. ""true""
 epsilonNfa test: 'a'. ""false""
 ```
 
+NOTE: This is already provided by the Union `#or:` machine. Consider removing.
 An NFA that supports multiple character transitions to the end state can be made
 by providing a string of allowed characters. An entire character class can
 be covered. For the character class of all numbers `[0-9]`:
@@ -181,6 +182,7 @@ SWNfa class >> characters: aString [
 	inState := SWState newAccepting: false.
 	outState := SWState newAccepting: true.
 	
+	self flag: #review. "This operation is already provided by the `#or:` factory i.e. Union. Consider changing back to producing single character machines."
 	aString do: [ :char | inState addTransitionForSymbol: char state: outState ].
 	
 	^ self newInState: inState outState: outState
@@ -327,7 +329,7 @@ SWNfa >> outState: aSWState [
 	outState := aSWState
 ]
 
-{ #category : #tests }
+{ #category : #matching }
 SWNfa >> test: aString [
 	"Match the state to the test string."
 	self flag: #todo. "After the course is finished consider renaming to `#match:`."

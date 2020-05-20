@@ -63,9 +63,60 @@ SWState >> initialize [
 	transitions := Dictionary new
 ]
 
-{ #category : #'as yet unclassified' }
-SWState >> test: aString [ 
-	self shouldBeImplemented.
+{ #category : #testing }
+SWState >> isVisited: aSet [
+
+	^ aSet includes: self
+]
+
+{ #category : #transitions }
+SWState >> resolveAcceptingState: aSet [
+
+	^ accepting
+		ifTrue: [ true ]
+		ifFalse: [ self transitionWithEpsilons: '' visited: aSet ]
+]
+
+{ #category : #transitions }
+SWState >> test: aString [
+
+	^ self test: aString visited: Set new
+]
+
+{ #category : #transitions }
+SWState >> test: aString visited: aSet [
+
+	(self isVisited: aSet) ifTrue: [ ^ false ].
+	
+	aSet add: self.
+
+	^ aString isEmpty
+		ifTrue: [ self resolveAcceptingState: aSet ]
+		ifFalse: [ self transitionStates: aString visited: aSet ]
+]
+
+{ #category : #transitions }
+SWState >> transitionStates: aString visited: aSet [
+
+	^ (self transitionWithCharacters: aString) or: (self transitionWithEpsilons: aString visited: aSet)
+]
+
+{ #category : #transitions }
+SWState >> transitionWithCharacters: aString [
+
+	^ (self transitionsForSymbol: aString first) values 
+		anySatisfy: [ :states | 
+			states anySatisfy: [ :state | state test: aString allButFirst ] 
+			]
+]
+
+{ #category : #transitions }
+SWState >> transitionWithEpsilons: aString visited: aSet [
+	
+	^ (self transitionsForSymbol: SWNfa epsilon) values 
+		anySatisfy: [ :states | 
+			states anySatisfy: [ :state | state test: aString visited: aSet ] 
+			]
 ]
 
 { #category : #accesing }
