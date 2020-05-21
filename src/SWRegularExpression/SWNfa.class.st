@@ -31,7 +31,7 @@ I have class factory methods that return specific types of state machines.
 For a state machine that will only accept the character `a`:
 
 ```smalltalk
-singleCharNfa := SWNfa characters: 'a'.
+singleCharNfa := SWNfa character: $a.
 singleCharNfa test: 'a'. ""true""
 singleCharNfa test: 'b'. ""false""
 ```
@@ -45,23 +45,10 @@ epsilonNfa test: ''. ""true""
 epsilonNfa test: 'a'. ""false""
 ```
 
-NOTE: This is already provided by the Union `#or:` machine. Consider removing.
-An NFA that supports multiple character transitions to the end state can be made
-by providing a string of allowed characters. An entire character class can
-be covered. For the character class of all numbers `[0-9]`:
-
-```smalltalk
-allNumbers := SWNfa characters: '0123456789'.
-
-allNumbers test: '5'. ""true""
-allNumbers test: '9'. ""true""
-allNumbers test: 'a'. ""false""
-```
-
 For an NFA that allows one or more character transitions e.g. `a+`:
 
 ```smalltalk
-a := SWNfa characters: 'a'.
+a := SWNfa character: $a.
 aPlus := SWNFa oneOrMore: a.
 
 aPlus test: 'a'. ""true""
@@ -72,7 +59,7 @@ aPlus test: ''. ""false""
 For an NFA that allows one or zero character transitions i.e. is optional e.g. `a?`:
 
 ```smalltalk
-a := SWNfa characters: 'a'.
+a := SWNfa character: $a.
 aOptional := SWNfa oneOrZero: a.
 
 aOptional test: ''. ""true""
@@ -86,8 +73,8 @@ State machines can be concatenated together into compound state machines.
 To create a state machine that accepts `ab`:
 
 ```smalltalk
-firstNfa := SWNfa characters: 'a'.
-secondNfa := SWNfa characters: 'b'.
+firstNfa := SWNfa character: $a.
+secondNfa := SWNfa character: $b.
 abNfa := SWNfa concat: firstNfa with: secondNfa.
 abNfa test: 'ab'. ""true""
 abNfa test: 'ac'. ""false""
@@ -98,9 +85,9 @@ order. Ordering is the same as array index ordering. To create a state
 machine that accepts `abc`:
 
 ```smalltalk
-firstNfa := SWNfa characters: 'a'.
-secondNfa := SWNfa characters: 'b'.
-thirdNfa := SWNfa characters: 'c'.
+firstNfa := SWNfa character: $a.
+secondNfa := SWNfa character: $b.
+thirdNfa := SWNfa character: $c.
 
 abcNfa := SWNfa concat: { firstNfa. secondNfa. thirdNfa. }.
 abcNfa test: 'abc'. ""true""
@@ -113,8 +100,8 @@ State machines can be combined into compound **OR** machines that accept
 one of two possible characters. To make a machine that accepts `a` or `b`:
 
 ```smalltalk
-firstNfa := SWNfa characters: 'a'.
-secondNfa := SWNfa characters: 'b'.
+firstNfa := SWNfa character: $a.
+secondNfa := SWNfa character: $b.
 
 aOrBNfa := SWNfa or: firstNfa with: secondNfa.
 aOrBNfa test: 'a'. ""true""
@@ -127,9 +114,9 @@ machine by providing them in an `Array`. To make a machine that accepts
 `a` or `b` or `c`:
 
 ```smalltalk
-firstNfa := SWNfa characters: 'a'.
-secondNfa := SWNfa characters: 'b'.
-thirdNfa := SWNfa characters: 'c'.
+firstNfa := SWNfa character: $a.
+secondNfa := SWNfa character: $b.
+thirdNfa := SWNfa character: $c.
 
 aOrBNfa := SWNfa or: { firstNfa. secondNfa. thirdNfa. }.
 aOrBNfa test: 'a'. ""true""
@@ -143,7 +130,7 @@ aOrBNfa test: 'd'. ""false""
 State machines can be repeated zero or more times with the **Klenne-closure** operation. To create a machine that accepts zero or more instances of `a`:
 
 ```smalltalk
-singleA := SWNfa characters: 'a'.
+singleA := SWNfa character: $a.
 
 repeatedA := SWNfa repeat: singleA.
 
@@ -176,14 +163,13 @@ Class {
 }
 
 { #category : #factory }
-SWNfa class >> characters: aString [
+SWNfa class >> character: aCharacter [
 	
 	| inState outState |
 	inState := SWState newAccepting: false.
 	outState := SWState newAccepting: true.
-	
-	self flag: #review. "This operation is already provided by the `#or:` factory i.e. Union. Consider changing back to producing single character machines."
-	aString do: [ :char | inState addTransitionForSymbol: char state: outState ].
+
+	inState addTransitionForSymbol: aCharacter state: outState.
 	
 	^ self newInState: inState outState: outState
 ]
@@ -219,7 +205,7 @@ SWNfa class >> emptyString [
 	
 	self flag: #todo. "More correctly called the epsilon NFA. Allows transitions between state without consuming characters. Consider renaming."
 
-	^ self characters: self epsilon asString
+	^ self character: self epsilon
 ]
 
 { #category : #constants }

@@ -15,7 +15,7 @@ Class {
 SWNfaTest >> testCharactersFactory [
 
 	| a |
-	a := SWNfa characters: 'a'.
+	a := SWNfa character: $a.
 	self 
 		assert: (a test: 'a') equals: true;
 		assert: (a test: '') equals: false;
@@ -27,9 +27,9 @@ SWNfaTest >> testCharactersFactory [
 SWNfaTest >> testConcatenationFactory [
 
 	| a b c abc |
-	a := SWNfa characters: 'a'.
-	b := SWNfa characters: 'b'.
-	c := SWNfa characters: 'c'.
+	a := SWNfa character: $a.
+	b := SWNfa character: $b.
+	c := SWNfa character: $c.
 	
 	abc := SWNfa concat: { a. b. c. }.
 	
@@ -61,7 +61,7 @@ SWNfaTest >> testEpsilonFactory [
 SWNfaTest >> testKleeneClosureFactory [
 
 	| a zeroOrMoreA |
-	a := SWNfa characters: 'a' .
+	a := SWNfa character: $a .
 	zeroOrMoreA := SWNfa repeat: a.
 	
 	self
@@ -80,7 +80,7 @@ SWNfaTest >> testKleeneClosureFactory [
 SWNfaTest >> testOneOrMoreFactory [
 
 	| a oneOrMoreA |
-	a := SWNfa characters: 'a'.
+	a := SWNfa character: $a.
 	oneOrMoreA := SWNfa oneOrMore: a.
 	
 	self
@@ -98,7 +98,7 @@ SWNfaTest >> testOneOrMoreFactory [
 SWNfaTest >> testOneOrZeroFactory [
 
 	| a oneOrZeroA |
-	a := SWNfa characters: 'a'.
+	a := SWNfa character: $a.
 	oneOrZeroA := SWNfa oneOrZero: a.
 	
 	self
@@ -116,9 +116,9 @@ SWNfaTest >> testOneOrZeroFactory [
 SWNfaTest >> testOrFactory [
 
 	| aOrBOrC a b c |
-	a := SWNfa characters: 'a'.
-	b := SWNfa characters: 'b'.
-	c := SWNfa characters: 'c'.
+	a := SWNfa character: $a.
+	b := SWNfa character: $b.
+	c := SWNfa character: $c.
 	aOrBOrC := SWNfa or: { a. b. c. }.
 	
 	self
