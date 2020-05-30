@@ -144,20 +144,24 @@ repeatedA test: 'b'. ""false""
 
 - inState: SWState, my starting state.
 - outState: SWState, my accepting state.
+- transitionTable: Dictionary, a table of all possible transitions between my states.
 
 ## Class Variables
 
 - Epsilon: The greek lower case ε. Represents an empty string.
+- EpsilonClosure: An epsilon with the Kleene-closure applied: 'ε*'. Represents all possible epsilon transitions from a state inculding the state itself.
 "
 Class {
 	#name : #SWNfa,
 	#superclass : #Object,
 	#instVars : [
 		'inState',
-		'outState'
+		'outState',
+		'transitionTable'
 	],
 	#classVars : [
-		'Epsilon'
+		'Epsilon',
+		'EpsilonClosure'
 	],
 	#category : #SWRegularExpression
 }
@@ -214,10 +218,17 @@ SWNfa class >> epsilon [
 	^ Epsilon
 ]
 
+{ #category : #constants }
+SWNfa class >> epsilonClosure [
+	
+	^ EpsilonClosure
+]
+
 { #category : #'class initialization' }
 SWNfa class >> initialize [
 
-	Epsilon := $ε
+	Epsilon := $ε.
+	EpsilonClosure := 'ε*'
 ]
 
 { #category : #'instance creation' }
@@ -292,6 +303,56 @@ SWNfa class >> repeat: aSWNfa [
 ]
 
 { #category : #accessing }
+SWNfa >> appendEpsilonClosures: table visited: visited [
+
+	visited do: [ :state | | labels |
+		labels := state epsilonClosure collect: [ :each | each label ] as: Set.
+	
+		table at: state label at: self class epsilonClosure put: labels 
+		]
+]
+
+{ #category : #'transitions - private' }
+SWNfa >> appendSymbolTransitions: aDictionary state: aSWState visited: aSet [
+
+	^ (aSet includes: aSWState) 
+		ifTrue: [ 
+			aDictionary
+			] 
+		ifFalse: [ 
+			aSet add: aSWState.
+			aSWState label: aSet size.
+			
+			aSWState transitions associationsDo: [ :transition | | stateLabels |
+					
+				stateLabels := transition value collect: [ :nextState | 
+					self appendSymbolTransitions: aDictionary state: nextState visited: aSet.
+					nextState label.
+					] as: Set.
+				
+				aDictionary at: aSWState label at: transition key put: stateLabels.
+				 ].
+			
+			aDictionary.
+			 ]
+]
+
+{ #category : #'transitions - private' }
+SWNfa >> buildTransitionTable [
+
+	| table visited |
+	visited := Set new.
+	
+	table := self appendSymbolTransitions: Dictionary new state: inState visited: visited.
+	
+	self appendEpsilonClosures: table visited: visited.
+
+	self removeEpsilonTransitions: table.
+
+	^ table
+]
+
+{ #category : #accessing }
 SWNfa >> inState [
 
 	^ inState
@@ -315,10 +376,26 @@ SWNfa >> outState: aSWState [
 	outState := aSWState
 ]
 
+{ #category : #accessing }
+SWNfa >> removeEpsilonTransitions: table [
+	
+	table valuesDo: [ :transition | transition removeKey: self class epsilon ifAbsent: [  ] ]
+]
+
 { #category : #matching }
 SWNfa >> test: aString [
 	"Match the state to the test string."
 	self flag: #todo. "After the course is finished consider renaming to `#match:`."
 		
 	^ inState test: aString
+]
+
+{ #category : #accessing }
+SWNfa >> transitionTable [
+	^ transitionTable
+		ifNil: [ 
+			transitionTable := self buildTransitionTable.
+			transitionTable 
+			]
+		ifNotNil: [ transitionTable ]
 ]

@@ -17,15 +17,16 @@ nonAcceptingState := SWState newAccepting: false.
 ## Instance Variables
 
 - accepting: Boolean, sets if I am an accepting state or not.
-- transitions: Dictionary, all transitions from me and the states they transition to.
-  A transition points to a collection of states.
+- label: Object, an arbitrary identifier of any type.
+- transitions: Dictionary, all transitions from me and the states they transition to. A transition points to a collection of states.
 "
 Class {
 	#name : #SWState,
 	#superclass : #Object,
 	#instVars : [
 		'accepting',
-		'transitions'
+		'transitions',
+		'label'
 	],
 	#category : #SWRegularExpression
 }
@@ -42,19 +43,31 @@ SWState >> accepting: aBoolean [
 	accepting := aBoolean
 ]
 
-{ #category : #accesing }
+{ #category : #accessing }
 SWState >> addEpsilonTransitionTo: aSWState [
 
 	self addTransitionForSymbol: SWNfa epsilon state: aSWState
 ]
 
-{ #category : #accesing }
+{ #category : #accessing }
 SWState >> addTransitionForSymbol: aCharacter state: aState [
 
 	transitions 
 		at: aCharacter 
 		ifPresent: [ :collection | collection add: aState ] 
 		ifAbsent: [ transitions at: aCharacter put: (OrderedCollection newFrom: { aState. }) ]
+]
+
+{ #category : #accessing }
+SWState >> epsilonClosure [
+	"All states that can be reached from this state with epsilon transitions."
+	
+	| states |
+	states := (self transitionsForSymbol: SWNfa epsilon) at: SWNfa epsilon ifAbsent: [ OrderedCollection new ].
+	^ states 
+		add: self;
+		yourself
+
 ]
 
 { #category : #initialization }
@@ -67,6 +80,18 @@ SWState >> initialize [
 SWState >> isVisited: aSet [
 
 	^ aSet includes: self
+]
+
+{ #category : #accessing }
+SWState >> label [
+
+	^ label
+]
+
+{ #category : #accessing }
+SWState >> label: anObject [
+
+	label := anObject
 ]
 
 { #category : #transitions }
@@ -119,7 +144,13 @@ SWState >> transitionWithEpsilons: aString visited: aSet [
 			]
 ]
 
-{ #category : #accesing }
+{ #category : #accessing }
+SWState >> transitions [
+
+	^ transitions
+]
+
+{ #category : #accessing }
 SWState >> transitionsForSymbol: aCharacter [
 	
 	^ transitions associationsSelect: [ :association | association key = aCharacter ]

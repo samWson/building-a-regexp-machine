@@ -4,12 +4,40 @@
 I am the test case for `SWNfa`.
 
 The `factory` protocol methods of `SWNfa` can be considered a key public interface, therefore the `factory` protocol is targeted for test coverage.
+
+## Instance Variables
+
+- aOrBFixture: an example machine that accepts the characters 'a' or 'b'. Equivalent to the expression '(a|b)'
 "
 Class {
 	#name : #SWNfaTest,
 	#superclass : #TestCase,
+	#instVars : [
+		'aOrBFixture'
+	],
 	#category : #'SWRegularExpression-Tests'
 }
+
+{ #category : #'tests - fixture' }
+SWNfaTest >> aOrBFixture [
+	^ Dictionary new
+		at: 1 at: SWNfa epsilonClosure put: {1 . 2 . 5} asSet;
+		at: 2 at: $a put: {3} asSet;
+		at: 2 at: SWNfa epsilonClosure put: {2} asSet;
+		at: 3 at: SWNfa epsilonClosure put: {3 . 4} asSet;
+		at: 4 at: SWNfa epsilonClosure put: {4} asSet;
+		at: 5 at: $b put: {6} asSet;
+		at: 5 at: SWNfa epsilonClosure put: {5} asSet;
+		at: 6 at: SWNfa epsilonClosure put: {6 . 4} asSet;
+		yourself
+]
+
+{ #category : #running }
+SWNfaTest >> setUp [
+	"Hooks that subclasses may override to define the fixture of test."
+	super setUp.
+	aOrBFixture := self aOrBFixture
+]
 
 { #category : #tests }
 SWNfaTest >> testCharactersFactory [
@@ -129,4 +157,14 @@ SWNfaTest >> testOrFactory [
 		assert: (aOrBOrC test: 'abc') equals: false;
 		assert: (aOrBOrC test: ' a') equals: false;
 		assert: (aOrBOrC test: 'b ') equals: false
+]
+
+{ #category : #tests }
+SWNfaTest >> testTransitionTable [
+	| a b aOrB |
+	a := SWNfa character: $a.
+	b := SWNfa character: $b.
+	aOrB := SWNfa or: { a. b. }.
+			
+	self assert: aOrB transitionTable equals: self aOrBFixture
 ]

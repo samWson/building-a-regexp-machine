@@ -23,3 +23,21 @@ SWStateTest >> testAddTransitionForSymbol [
 	
 	self assert: actual equals: expected
 ]
+
+{ #category : #tests }
+SWStateTest >> testEpsilonClosure [
+
+	| state1 state2 state3 state4 |
+	state1 := SWState newAccepting: false.
+	state2 := SWState newAccepting: false.
+	state3 := SWState newAccepting: false.
+	state4 := SWState newAccepting: false.
+	
+	state1 
+		addTransitionForSymbol: $a state: state2;
+		addEpsilonTransitionTo: state3;
+		addEpsilonTransitionTo: state4.
+		
+	self assertCollection: state1 epsilonClosure hasSameElements: { state1. state3. state4. }
+	
+]
