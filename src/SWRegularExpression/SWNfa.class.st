@@ -142,6 +142,7 @@ repeatedA test: 'b'. ""false""
 
 ## Instance Variables
 
+- alphabet: Set, all the symbols that I allow transitions for. Excludes ε.
 - inState: SWState, my starting state.
 - outState: SWState, my accepting state.
 - transitionTable: Dictionary, a table of all possible transitions between my states.
@@ -157,7 +158,8 @@ Class {
 	#instVars : [
 		'inState',
 		'outState',
-		'transitionTable'
+		'transitionTable',
+		'alphabet'
 	],
 	#classVars : [
 		'Epsilon',
@@ -300,6 +302,20 @@ SWNfa class >> repeat: aSWNfa [
 	aSWNfa outState addEpsilonTransitionTo: aSWNfa inState.
 	
 	^ aSWNfa
+]
+
+{ #category : #accessing }
+SWNfa >> alphabet [
+
+	^ alphabet 
+		ifNil: [ | symbols |
+			
+			symbols := self transitionTable values flatCollectAsSet: [ :transition | transition keys ].
+				
+			alphabet := symbols copyWithout: self class epsilonClosure.
+			alphabet
+			 ] 
+		ifNotNil: [ alphabet ]
 ]
 
 { #category : #accessing }

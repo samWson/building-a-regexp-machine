@@ -7,7 +7,7 @@ The `factory` protocol methods of `SWNfa` can be considered a key public interfa
 
 ## Instance Variables
 
-- aOrBFixture: an example machine that accepts the characters 'a' or 'b'. Equivalent to the expression '(a|b)'
+- aOrBTransitionTable: an example machine that accepts the characters 'a' or 'b'. Equivalent to the expression '(a|b)'
 "
 Class {
 	#name : #SWNfaTest,
@@ -37,6 +37,27 @@ SWNfaTest >> setUp [
 	"Hooks that subclasses may override to define the fixture of test."
 	super setUp.
 	aOrBFixture := self aOrBFixture
+]
+
+{ #category : #tests }
+SWNfaTest >> testAlphabet [
+
+	| a b c expected nfa |
+	a := SWState newAccepting: false.
+	b := SWState newAccepting: false.
+	c := SWState newAccepting: true.
+	
+	a 
+		addEpsilonTransitionTo: c;
+		addTransitionForSymbol: $b state: b.
+	
+	b addTransitionForSymbol: $c state: c.
+	
+	nfa := SWNfa newInState: a outState: c.
+	
+	expected := Set newFrom: { $b. $c. }.
+	
+	self assert: nfa alphabet equals: expected
 ]
 
 { #category : #tests }
@@ -166,5 +187,5 @@ SWNfaTest >> testTransitionTable [
 	b := SWNfa character: $b.
 	aOrB := SWNfa or: { a. b. }.
 			
-	self assert: aOrB transitionTable equals: self aOrBFixture
+	self assert: aOrB transitionTable equals: self aOrBTransitionTable
 ]
