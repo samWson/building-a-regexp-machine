@@ -19,7 +19,7 @@ Class {
 }
 
 { #category : #'tests - fixture' }
-SWNfaTest >> aOrBFixture [
+SWNfaTest >> aOrBTransitionTable [
 	^ Dictionary new
 		at: 1 at: SWNfa epsilonClosure put: {1 . 2 . 5} asSet;
 		at: 2 at: $a put: {3} asSet;
@@ -36,7 +36,7 @@ SWNfaTest >> aOrBFixture [
 SWNfaTest >> setUp [
 	"Hooks that subclasses may override to define the fixture of test."
 	super setUp.
-	aOrBFixture := self aOrBFixture
+	aOrBFixture := self aOrBTransitionTable
 ]
 
 { #category : #tests }
